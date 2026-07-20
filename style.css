@@ -462,9 +462,12 @@ body {
 
 /* Small phones */
 
-@media (max-width:360px){
+@media (max-width:390px){
 
     .calendar-container{
+        width:360px;
+      
+        align-items: center;
         padding:8px;
     }
 
@@ -484,20 +487,117 @@ body {
     }
 
     .day-number{
+
         font-size:11px;
     }
 
-    .count{
-        display:none;
-    }
+  .count{
+    width: 20px;
+    height: 20px;
+    margin: 2px auto 0;
+    font-size: 10px;
+  
+    color: #fff;
+    background: #1976d2;
+    border-radius: 50%;
 
-    .add-btn,
-    .minus-btn{
-        width:26px;
-        height:26px;
-        font-size:11px;
-        line-height:16px;
-    }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    
+}
+
+    /* No bottle */
+
+.day.gray {
+    width: 45px;
+height: 100%;
+    background:#e5e5e5;
+
+}
+
+
+
+/* Has bottle */
+
+.day.green {
+        width: 45px;
+height: 100%;
+
+    background:#c8e6c9;
+
+}
+
+
+
+.calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:4px;
+}
+
+    
+.add-btn {
+
+    position:absolute;
+
+    bottom:5px;
+
+    right:5px;
+
+
+    width:15px;
+    height:15px;
+
+    border-radius:50%;
+
+    border:none;
+
+    background:#2e7d32;
+
+    color:white;
+
+    font-size:16px;
+
+}
+
+.minus-btn {
+
+    position:absolute;
+
+    bottom:5px;
+
+    left:5px;
+
+    width:15px;
+    height:15px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:#d32f2f;
+
+    color:white;
+
+    font-size:18px;
+
+    line-height:20px;
+
+}
+
+.add-btn:hover {
+
+    background:#078802;
+
+}
+
+.minus-btn:hover {
+
+    background:#b71c1c;
+
+}
 }
 
 
@@ -633,7 +733,33 @@ button {
 
 }
 
+.secondary {
 
+    width:100%;
+
+    padding:12px;
+
+    margin-top:8px;
+
+    background:#ff9f10;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    font-size:15px;
+
+}
+
+
+
+.secondary:hover {
+
+    background:#df9800;
+
+}
 
 .danger {
 
