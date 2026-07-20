@@ -297,23 +297,23 @@ padding:10px;
 </div>
 
 <div class="card">
-<h3>Today's Cost</h3>
-<h1 id="todayCost">₹0</h1>
-</div>
-
-<div class="card">
 <h3>This Month Bottles</h3>
 <h1 id="monthBottle">0</h1>
 </div>
 
 <div class="card">
-<h3>This Month Cost</h3>
-<h1 id="monthCost">₹0</h1>
+<h3>Overall Bottles</h3>
+<h1 id="overallBottle">0</h1>
 </div>
 
 <div class="card">
-<h3>Overall Bottles</h3>
-<h1 id="overallBottle">0</h1>
+<h3>Today's Cost</h3>
+<h1 id="todayCost">₹0</h1>
+</div>
+
+<div class="card">
+<h3>This Month Cost</h3>
+<h1 id="monthCost">₹0</h1>
 </div>
 
 <div class="card">
@@ -606,62 +606,41 @@ Settings
 <!-- ================= DATE DETAILS MODAL ================= -->
 
 
-<div class="modal" id="dateModal">
+<div id="dateModal" class="modal">
+    <div class="modal-content">
 
+        <h3 id="selectedDate"></h3>
 
-<div class="modal-content">
+        <p>
+            Bottles :
+            <strong id="selectedCount">0</strong>
+        </p>
 
+        <p>
+            Cost :
+            <strong id="selectedCost">₹0</strong>
+        </p>
 
-<h3 id="selectedDate">
+        <div class="modal-buttons">
+            <button class="primary"
+                    onclick="addBottleFromModal()">
+                ➕ Add Bottle
+            </button>
 
-Date
+            <button class="danger"
+                    onclick="removeBottleFromModal()">
+                ➖ Remove Bottle
+            </button>
+        </div>
 
-</h3>
+        <button class="secondary"
+                onclick="closeModal()"
+                style="margin-top:12px;width:100%;">
+            ✖ Close
+        </button>
 
-
-<p>
-Bottle Count:
-<span id="selectedCount">
-0
-</span>
-
-</p>
-
-
-<p>
-Cost:
-<span id="selectedCost">
-₹0
-</span>
-
-</p>
-
-
-
-<button 
-class="primary"
-onclick="addBottleFromModal()">
-
-+ Add Bottle
-
-</button>
-
-
-
-<button 
-class="danger"
-onclick="closeModal()">
-
-Close
-
-</button>
-
-
+    </div>
 </div>
-
-
-</div>
-
 
 
 
