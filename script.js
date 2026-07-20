@@ -420,6 +420,16 @@ function removeBottle(date){
 }
 
 
+// -----------------------------
+// Popup - Remove
+// -----------------------------
+function removeBottleFromModal(){
+
+    removeBottle(selectedDate);
+
+    openDateModal(selectedDate);
+
+}
 
 
 // -----------------------------
