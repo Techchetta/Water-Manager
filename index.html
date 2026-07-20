@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛢️ Water Bottle Manager</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins,sans-serif;
+}
+
+body{
+background:#f2f5fa;
+color:#222;
+padding-bottom:80px;
+}
+
+.page{
+display:none;
+padding:15px;
+}
+
+.page.active{
+display:block;
+}
+
+.header{
+margin-bottom:15px;
+}
+
+.header h2{
+font-size:24px;
+font-weight:600;
+}
+
+.summary-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+margin-bottom:20px;
+}
+
+.card{
+background:#fff;
+border-radius:12px;
+padding:15px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+text-align:center;
+}
+
+.card h3{
+font-size:14px;
+color:#666;
+margin-bottom:8px;
+}
+
+.card h1{
+font-size:24px;
+color:#2E7D32;
+}
+
+.calendar-container{
+background:#fff;
+border-radius:15px;
+padding:15px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.calendar-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
+}
+
+.calendar-header button{
+width:35px;
+height:35px;
+border:none;
+background:#2E7D32;
+color:#fff;
+border-radius:50%;
+font-size:18px;
+cursor:pointer;
+}
+
+.calendar-days{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+margin-bottom:10px;
+font-weight:bold;
+text-align:center;
+}
+
+.calendar-grid{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+}
+
+.day{
+background:#ddd;
+border-radius:10px;
+min-height:82px;
+padding:5px;
+position:relative;
+font-size:13px;
+cursor:pointer;
+}
+
+.day.gray{
+background:#e0e0e0;
+}
+
+.day.green{
+background:#c8f7c5;
+}
+
+.day.today{
+border:3px solid #ff9800;
+}
+
+.day-number{
+font-weight:bold;
+}
+
+.count{
+margin-top:8px;
+font-size:12px;
+}
+
+.add-btn{
+position:absolute;
+bottom:5px;
+right:5px;
+width:22px;
+height:22px;
+border:none;
+background:#2E7D32;
+color:#fff;
+border-radius:50%;
+font-weight:bold;
+cursor:pointer;
+}
+
+.report-table{
+width:100%;
+border-collapse:collapse;
+background:#fff;
+margin-top:15px;
+}
+
+.report-table th,
+.report-table td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+.setting-card{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.setting-card h3{
+margin-bottom:10px;
+}
+
+.setting-card input{
+width:100%;
+padding:10px;
+border:1px solid #ddd;
+border-radius:8px;
+margin-bottom:10px;
+}
+
+button.primary{
+width:100%;
+padding:12px;
+border:none;
+background:#2E7D32;
+color:#fff;
+border-radius:8px;
+margin-top:8px;
+font-size:15px;
+}
+
+button.danger{
+width:100%;
+padding:12px;
+border:none;
+background:#d32f2f;
+color:white;
+border-radius:8px;
+margin-top:8px;
+}
+
+.bottom-nav{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+height:65px;
+background:#fff;
+display:flex;
+justify-content:space-around;
+align-items:center;
+box-shadow:0 -2px 10px rgba(0,0,0,.1);
+}
+
+.bottom-nav button{
+background:none;
+border:none;
+font-size:15px;
+font-weight:600;
+color:#666;
+}
+
+.bottom-nav button.active{
+color:#2E7D32;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,.5);
+z-index:1000;
+}
+
+.modal-content{
+background:white;
+padding:20px;
+width:90%;
+max-width:350px;
+border-radius:12px;
+}
+
+.modal-content input{
+width:100%;
+padding:10px;
+margin:10px 0;
+}
+
+.modal-buttons{
+display:flex;
+gap:10px;
+}
+
+.modal-buttons button{
+flex:1;
+padding:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ================= DASHBOARD ================= -->
+
+<div id="dashboard" class="page active">
+
+<div class="header">
+<h2>🛢️ Water Bottle Manager</h2>
+</div>
+
+<div class="summary-grid">
+
+<div class="card">
+<h3>Today's Bottles</h3>
+<h1 id="todayBottle">0</h1>
+</div>
+
+<div class="card">
+<h3>Today's Cost</h3>
+<h1 id="todayCost">₹0</h1>
+</div>
+
+<div class="card">
+<h3>This Month Bottles</h3>
+<h1 id="monthBottle">0</h1>
+</div>
+
+<div class="card">
+<h3>This Month Cost</h3>
+<h1 id="monthCost">₹0</h1>
+</div>
+
+<div class="card">
+<h3>Overall Bottles</h3>
+<h1 id="overallBottle">0</h1>
+</div>
+
+<div class="card">
+<h3>Overall Cost</h3>
+<h1 id="overallCost">₹0</h1>
+</div>
+
+</div>
+
+<div class="calendar-container">
+
+<div class="calendar-header">
+
+<button id="prevMonth">
+◀
+</button>
+
+<h3 id="monthYear">
+July 2026
+</h3>
+
+<button id="nextMonth">
+▶
+</button>
+
+</div>
+
+<div class="calendar-days">
+
+<div>Sun</div>
+<div>Mon</div>
+<div>Tue</div>
+<div>Wed</div>
+<div>Thu</div>
+<div>Fri</div>
+<div>Sat</div>
+
+</div>
+
+<div id="calendar" class="calendar-grid">
+
+<!-- JavaScript generates calendar here -->
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= REPORT PAGE ================= -->
+
+<div id="reports" class="page">
+
+<div class="header">
+<h2>Reports</h2>
+</div>
+
+<h3>Daily Report</h3>
+
+<table class="report-table">
+
+<thead>
+
+<tr>
+
+    <th>Date</th>
+    <th>Bottles</th>
+    <th>Cost</th>
+    <th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="dailyReport">
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<th>Total</th>
+
+<th id="dailyTotalBottle">0</th>
+
+<th id="dailyTotalCost">₹0</th>
+<th ></th>
+
+</tr>
+
+</tfoot>
+
+</table>
+<!-- ================= MONTHLY REPORT ================= -->
+
+<h3 style="margin-top:25px;">Monthly Report</h3>
+
+<table class="report-table">
+
+<thead>
+
+<tr>
+    <th>Date</th>
+    <th>Bottles</th>
+    <th>Cost</th>
+    <th>Remark</th>
+</tr>
+
+</thead>
+
+<tbody id="monthlyReport">
+
+</tbody>
+
+<tfoot>
+
+<tr>
+<th>Total</th>
+<th id="monthlyTotalBottle">0</th>
+<th id="monthlyTotalCost">₹0</th>
+<th ></th>
+</tr>
+
+</tfoot>
+
+</table>
+
+
+<div class="setting-card">
+
+<h3>Export Reports</h3>
+
+<button class="primary" onclick="exportDailyPDF()">
+Export Daily PDF
+</button>
+
+<button class="primary" onclick="exportDailyExcel()">
+Export Daily Excel
+</button>
+
+<button class="primary" onclick="exportMonthlyPDF()">
+Export Monthly PDF
+</button>
+
+<button class="primary" onclick="exportMonthlyExcel()">
+Export Monthly Excel
+</button>
+
+</div>
+
+
+</div>
+
+
+<!-- ================= SETTINGS PAGE ================= -->
+
+<div id="settings" class="page">
+
+
+<div class="header">
+
+<h2>Settings</h2>
+
+</div>
+
+
+
+<div class="setting-card">
+
+<h3>Bottle Price</h3>
+
+<input 
+type="number" 
+id="bottlePrice"
+placeholder="Enter bottle cost">
+
+<button class="primary" onclick="savePrice()">
+
+Save Bottle Price
+
+</button>
+
+</div>
+
+
+
+
+
+<div class="setting-card">
+
+<h3>Backup & Restore</h3>
+
+
+<button class="primary" onclick="backupData()">
+
+Backup Data
+
+</button>
+
+
+<button class="primary" onclick="document.getElementById('restoreFile').click()">
+
+Restore Data
+
+</button>
+
+
+<input 
+type="file" 
+id="restoreFile"
+accept=".json"
+style="display:none"
+onchange="restoreData(event)"
+>
+
+
+</br></br><p id="lastBackup"></p>
+
+
+
+</p>
+
+
+</div>
+
+
+
+<div class="setting-card">
+
+
+<h3>Clear Application Data</h3>
+
+
+<p>
+Delete all bottle records permanently.
+</p>
+
+
+<button class="danger" onclick="clearAllData()">
+
+Clear All Data
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+<!-- ================= BOTTOM NAVIGATION ================= -->
+
+
+<div class="bottom-nav">
+
+
+<button 
+class="active"
+onclick="showPage('dashboard',this)">
+🏠
+<br>
+Dashboard
+</button>
+
+
+<button 
+onclick="showPage('reports',this)">
+📊
+<br>
+Reports
+</button>
+
+
+<button 
+onclick="showPage('settings',this)">
+⚙️
+<br>
+Settings
+</button>
+
+
+</div>
+
+
+
+
+<!-- ================= DATE DETAILS MODAL ================= -->
+
+
+<div class="modal" id="dateModal">
+
+
+<div class="modal-content">
+
+
+<h3 id="selectedDate">
+
+Date
+
+</h3>
+
+
+<p>
+Bottle Count:
+<span id="selectedCount">
+0
+</span>
+
+</p>
+
+
+<p>
+Cost:
+<span id="selectedCost">
+₹0
+</span>
+
+</p>
+
+
+
+<button 
+class="primary"
+onclick="addBottleFromModal()">
+
++ Add Bottle
+
+</button>
+
+
+
+<button 
+class="danger"
+onclick="closeModal()">
+
+Close
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= EDIT RECORD MODAL ================= -->
+
+
+<div class="modal" id="editModal">
+
+
+<div class="modal-content">
+
+
+<h3>
+Edit Bottle Record
+</h3>
+
+
+<input 
+type="date"
+id="editDate">
+
+
+<input 
+type="number"
+id="editCount"
+placeholder="Bottle Count">
+
+
+<div class="modal-buttons">
+
+
+<button 
+class="primary"
+onclick="updateRecord()">
+
+Save
+
+</button>
+
+
+<button 
+class="danger"
+onclick="closeEditModal()">
+
+Cancel
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= CONFIRMATION MODAL ================= -->
+
+
+<div class="modal" id="confirmModal">
+
+
+<div class="modal-content">
+
+
+<h3>
+Confirm Action
+</h3>
+
+
+<p id="confirmMessage">
+
+Are you sure?
+
+</p>
+
+
+
+<div class="modal-buttons">
+
+
+<button 
+class="primary"
+id="confirmYes">
+
+Yes
+
+</button>
+
+
+<button 
+class="danger"
+onclick="closeConfirm()">
+
+Cancel
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- ================= JAVASCRIPT FILE ================= -->
+
+
+<script src="script.js"></script>
+
+
+</body>
+
+</html>
