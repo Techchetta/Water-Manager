@@ -1,979 +1,2422 @@
-/* =========================
-   Water Bottle Manager CSS
-   ========================= */
+/* ==========================================
+   Water Bottle Manager
+   script.js Part 1
+   ========================================== */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: "Poppins", Arial, sans-serif;
-    background: #f4f7fb;
-    color: #222;
-    padding-bottom: 75px;
-}
+// -----------------------------
+// App Data
+// -----------------------------
 
-/* ---------- Pages ---------- */
+let bottleData = JSON.parse(
+    localStorage.getItem("bottleData")
+) || {};
 
-.page {
-    display: none;
-    padding: 15px;
-    animation: fade .3s ease;
-}
+let bottlePrice = 
+    Number(localStorage.getItem("bottlePrice")) || 20;
 
-.page.active {
-    display: block;
-}
 
-@keyframes fade {
-    from {
-        opacity: 0;
+let currentDate = new Date();
+
+let selectedDate = null;
+
+
+// -----------------------------
+// Initialize App
+// -----------------------------
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        document.getElementById(
+            "bottlePrice"
+        ).value = bottlePrice;
+
+
+        renderCalendar();
+
+        calculateTotals();
+
+        generateReports();
+
     }
-    to {
-        opacity: 1;
+);
+
+
+
+// -----------------------------
+// Navigation
+// -----------------------------
+
+function showPage(page,id){
+
+    document
+    .querySelectorAll(".page")
+    .forEach(p=>{
+        p.classList.remove("active");
+    });
+
+
+    document
+    .getElementById(page)
+    .classList.add("active");
+
+
+    document
+    .querySelectorAll(".bottom-nav button")
+    .forEach(btn=>{
+        btn.classList.remove("active");
+    });
+
+
+    id.classList.add("active");
+
+
+
+    if(page==="reports"){
+
+        generateReports();
+
     }
-}
-
-
-/* ---------- Header ---------- */
-
-.header {
-    margin-bottom: 15px;
-}
-
-.header h2 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1b5e20;
-}
-
-
-
-/* ---------- Dashboard Cards ---------- */
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-
-.card {
-
-    background: white;
-    border-radius: 16px;
-    padding: 15px;
-    text-align: center;
-
-    box-shadow:
-    0 3px 10px rgba(0,0,0,.08);
-
-}
-
-
-.card h3 {
-
-    font-size: 13px;
-    color:#777;
-    margin-bottom:8px;
-
-}
-
-
-.card h1 {
-
-    color:#2e7d32;
-    font-size:24px;
 
 }
 
 
 
-/* ---------- Calendar ---------- */
+// -----------------------------
+// Calendar
+// -----------------------------
 
 
-.calendar-container {
+function renderCalendar(){
 
-    background:white;
-    border-radius:16px;
-    padding:15px;
 
-    box-shadow:
-    0 3px 10px rgba(0,0,0,.08);
+    let calendar =
+    document.getElementById("calendar");
 
-}
 
+    calendar.innerHTML="";
 
 
-.calendar-header {
+    let year =
+    currentDate.getFullYear();
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
 
-    margin-bottom:15px;
+    let month =
+    currentDate.getMonth();
 
-}
 
 
-.calendar-header h3 {
+    document.getElementById(
+        "monthYear"
+    ).innerText =
+    new Date(
+        year,
+        month
+    ).toLocaleString(
+        "default",
+        {
+            month:"long",
+            year:"numeric"
+        }
+    );
 
-    color:#1b5e20;
 
-}
 
+    let firstDay =
+    new Date(
+        year,
+        month,
+        1
+    ).getDay();
 
-.calendar-header button {
 
-    width:35px;
-    height:35px;
 
-    border:none;
+    let days =
+    new Date(
+        year,
+        month+1,
+        0
+    ).getDate();
 
-    border-radius:50%;
 
-    background:#2e7d32;
-    color:white;
 
-    font-size:18px;
+    for(
+        let i=0;
+        i<firstDay;
+        i++
+    ){
 
-}
+        let empty =
+        document.createElement("div");
 
-
-
-.calendar-days {
-
-    display:grid;
-
-    grid-template-columns:repeat(7,1fr);
-
-    text-align:center;
-
-    font-size:13px;
-
-    font-weight:600;
-
-    color:#666;
-
-    margin-bottom:8px;
-
-}
-
-
-
-.calendar-grid {
-
-    display:grid;
-
-    grid-template-columns:repeat(7,1fr);
-
-    gap:6px;
-
-}
-
-
-
-.day {
-
-    min-height:85px;
-
-    border-radius:12px;
-
-    padding:6px;
-
-    position:relative;
-
-    cursor:pointer;
-
-    font-size:12px;
-
-    transition:.2s;
-
-}
-
-
-
-.day:hover {
-
-    transform:scale(1.03);
-
-}
-
-
-
-
-/* No bottle */
-
-.day.gray {
-
-    background:#e5e5e5;
-
-}
-
-
-
-/* Has bottle */
-
-.day.green {
-
-    background:#c8e6c9;
-
-}
-
-
-
-/* Today */
-
-.day.today {
-
-    border:3px solid #ff9800;
-
-}
-
-
-
-.day-number {
-
-    font-size:14px;
-
-    font-weight:bold;
-
-}
-
-
-
-.count {
-
-    margin-top:8px;
-
-    color:#333;
-
-    font-weight:500;
-
-}
-
-
-
-.add-btn {
-
-    position:absolute;
-
-    bottom:5px;
-
-    right:5px;
-
-
-    width:24px;
-    height:24px;
-
-    border-radius:50%;
-
-    border:none;
-
-    background:#2e7d32;
-
-    color:white;
-
-    font-size:16px;
-
-}
-
-.minus-btn {
-
-    position:absolute;
-
-    bottom:5px;
-
-    left:5px;
-
-    width:24px;
-
-    height:24px;
-
-    border:none;
-
-    border-radius:50%;
-
-    background:#d32f2f;
-
-    color:white;
-
-    font-size:18px;
-
-    line-height:20px;
-
-}
-
-.add-btn:hover {
-
-    background:#078802;
-
-}
-
-.minus-btn:hover {
-
-    background:#b71c1c;
-
-}
-
-
-/* ==========================
-   Mobile Friendly Calendar
-   ========================== */
-
-.calendar-container {
-    background:#fff;
-    border-radius:16px;
-    padding:12px;
-    box-shadow:0 3px 10px rgba(0,0,0,.08);
-    overflow:hidden;
-}
-
-
-.calendar-header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:15px;
-}
-
-
-.calendar-header button {
-
-    width:38px;
-    height:38px;
-
-    border:none;
-    border-radius:50%;
-
-    background:#2e7d32;
-    color:white;
-
-    font-size:18px;
-
-}
-
-
-/* Week Names */
-
-.calendar-days{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    font-size:10px;
-    font-weight:600;
-    text-align:center;
-    margin-bottom:5px;
-}
-
-
-/* Calendar */
-
-.calendar-grid{
-    display:grid;
-    grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:4px;
-}
-
-
-.day{
-    aspect-ratio:1;
-    min-height:48px;
-    border-radius:8px;
-    padding:3px;
-    position:relative;
-    overflow:hidden;
-    font-size:10px;
-}
-
-
-.day-number{
-    font-size:16px;
-    font-weight:800;
-    
-}
-
-
-
-.count{
-    width: 20px;
-    height: 20px;
-    margin: 2px auto 0;
-    font-size: 10px;
-  
-    color: #fff;
-    background: #1976d2;
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    
-}
-
-
-
-.add-btn,
-.minus-btn{
-    width:18px;
-    height:18px;
-    font-size:12px;
-    border-radius:50%;
-    line-height:18px;
-    padding:0;
-}
-
-.add-btn{
-    right:2px;
-    bottom:2px;
-}
-
-.minus-btn{
-    left:2px;
-    bottom:2px;
-}
-
-.edit-btn,
-.delete-btn{
-
-    border:none;
-    color:#fff;
-    padding:6px 10px;
-    border-radius:6px;
-    cursor:pointer;
-    margin:2px;
-
-}
-
-.edit-btn{
-
-    background:#1976d2;
-
-}
-
-.delete-btn{
-
-    background:#d32f2f;
-
-}
-
-
-
-
-/* ---------- Reports ---------- */
-
-
-.report-table {
-
-    width:100%;
-
-    background:white;
-
-    border-collapse:collapse;
-
-    margin-top:15px;
-
-    border-radius:12px;
-
-    overflow:hidden;
-
-}
-
-
-
-.report-table th {
-
-    background:#2e7d32;
-
-    color:white;
-
-}
-
-
-
-.report-table td,
-.report-table th {
-
-    padding:10px;
-
-    border:1px solid #ddd;
-
-    text-align:center;
-
-    font-size:14px;
-
-}
-
-
-
-/* ---------- Settings ---------- */
-
-
-.setting-card {
-
-    background:white;
-
-    padding:15px;
-
-    border-radius:15px;
-
-    margin-bottom:15px;
-
-
-    box-shadow:
-    0 3px 10px rgba(0,0,0,.08);
-
-}
-
-
-
-.setting-card h3 {
-
-    color:#1b5e20;
-
-    margin-bottom:10px;
-
-}
-
-
-
-.setting-card input {
-
-    width:100%;
-
-    padding:12px;
-
-    border-radius:10px;
-
-    border:1px solid #ccc;
-
-    margin-bottom:10px;
-
-}
-
-
-
-/* ---------- Buttons ---------- */
-
-
-button {
-
-    cursor:pointer;
-
-}
-
-
-
-.primary {
-
-    width:100%;
-
-    padding:12px;
-
-    margin-top:8px;
-
-    background:#2e7d32;
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-    font-size:15px;
-
-}
-
-
-
-.primary:hover {
-
-    background:#1b5e20;
-
-}
-
-.secondary {
-
-    width:100%;
-
-    padding:12px;
-
-    margin-top:8px;
-
-    background:#ff9f10;
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-    font-size:15px;
-
-}
-
-
-
-.secondary:hover {
-
-    background:#df9800;
-
-}
-
-.danger {
-
-    width:100%;
-
-    padding:12px;
-
-    margin-top:8px;
-
-    background:#d32f2f;
-
-    color:white;
-
-    border:none;
-
-    border-radius:10px;
-
-}
-
-
-
-/* ---------- Bottom Navigation ---------- */
-
-
-.bottom-nav {
-
-    position:fixed;
-
-    bottom:0;
-
-    left:0;
-
-    width:100%;
-
-    height:70px;
-
-    background:white;
-
-
-    display:flex;
-
-    justify-content:space-around;
-
-    align-items:center;
-
-
-    box-shadow:
-
-    0 -3px 10px rgba(0,0,0,.12);
-
-    z-index:500;
-
-}
-
-
-
-.bottom-nav button {
-
-    border:none;
-
-    background:none;
-
-    color:#777;
-
-    font-size:13px;
-
-}
-
-
-
-.bottom-nav button.active {
-
-    color:#2e7d32;
-
-    font-weight:bold;
-
-}
-
-
-
-/* ---------- Modal ---------- */
-
-
-.modal {
-
-    position:fixed;
-
-    inset:0;
-
-    background:rgba(0,0,0,.5);
-
-    display:none;
-
-    align-items:center;
-
-    justify-content:center;
-
-    z-index:1000;
-
-}
-
-
-
-.modal-content {
-
-    background:white;
-
-    width:90%;
-
-    max-width:380px;
-
-    padding:20px;
-
-    border-radius:15px;
-
-}
-
-
-
-.modal-content h3 {
-
-    margin-bottom:15px;
-
-    color:#1b5e20;
-
-}
-
-
-
-.modal-content input {
-
-    width:100%;
-
-    padding:12px;
-
-    margin:8px 0;
-
-    border-radius:8px;
-
-    border:1px solid #ccc;
-
-}
-
-
-
-.modal-buttons {
-
-    display:flex;
-
-    gap:10px;
-
-}
-
-
-
-.modal-buttons button {
-
-    flex:1;
-
-}
-
-
-
-/* ---------- Mobile Optimization ---------- */
-
-
-@media(max-width:650px){
-
-
-    .card h1 {
-
-        font-size:20px;
+        calendar.appendChild(empty);
 
     }
 
 
-    .day {
 
-        min-height:70px;
+    for(
+        let d=1;
+        d<=days;
+        d++
+    ){
 
-        font-size:11px;
+
+        let div =
+        document.createElement("div");
+
+
+        let dateKey =
+        formatDate(
+            new Date(
+                year,
+                month,
+                d
+            )
+        );
+
+
+
+        let count =
+        bottleData[dateKey] || 0;
+
+
+
+        div.className =
+        "day " +
+        (
+            count>0
+            ?
+            "green"
+            :
+            "gray"
+        );
+
+
+
+        if(
+            isToday(
+                year,
+                month,
+                d
+            )
+        ){
+
+            div.classList.add(
+                "today"
+            );
+
+        }
+
+
+
+        div.innerHTML = `
+
+        <div class="day-number">
+        ${d}
+        </div>
+
+
+        <div class="count">
+        ${count} 
+        </div>
+
+
+            <button 
+        class="minus-btn"
+        onclick="event.stopPropagation();removeBottle('${dateKey}')">
+
+        −
+
+        </button>
+
+
+        <button 
+        class="add-btn"
+        onclick="event.stopPropagation();addBottle('${dateKey}')">
+
+        +
+
+        </button>
+
+        `;
+
+
+
+        div.onclick=()=>{
+            openDateModal(
+                dateKey
+            );
+        };
+
+
+
+        calendar.appendChild(div);
+
 
     }
-
-
-    .calendar-header h3 {
-
-        font-size:16px;
-
-    }
-
-    .calendar-container{
-    
-      
-        align-items: center;
-        padding:8px;
-    }
-
-    .calendar-header h3{
-        font-size:16px;
-    }
-
-    .calendar-header button{
-        width:32px;
-        height:32px;
-        font-size:16px;
-    }
-
-    .day{
-        min-height:42px;
-        font-size:9px;
-    }
-
-    .day-number{
-
-        font-size:11px;
-    }
-
-  .count{
-    width: 20px;
-    height: 20px;
-    margin: 2px auto 0;
-    font-size: 10px;
-  
-    color: #fff;
-    background: #1976d2;
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    
-}
-
-    /* No bottle */
-
-.day.gray {
-    width: 100%;
-height: 100%;
-    background:#e5e5e5;
-
-}
-
-
-
-/* Has bottle */
-
-.day.green {
-        width: 100%;
-height: 100%;
-
-    background:#c8e6c9;
-
-}
-
-
-
-.calendar-grid{
-    display:grid;
-    grid-template-columns:repeat(7,minmax(0,1fr));
-    gap:4px;
-}
-
-    
-.add-btn {
-
-    position:absolute;
-
-    bottom:5px;
-
-    right:5px;
-
-
-    width:15px;
-    height:15px;
-
-    border-radius:50%;
-
-    border:2px;
-
-    background:#2e7d32;
-
-    color:white;
-
-    font-size:16px;
-
-}
-
-.minus-btn {
-
-    position:absolute;
-
-    bottom:5px;
-
-    left:5px;
-
-    width:15px;
-    height:15px;
-
-    border:2px;
-
-    border-radius:50%;
-
-    background:#d32f2f;
-
-    color:white;
-
-    font-size:18px;
-
-    line-height:20px;
-
-}
-
-.add-btn:hover {
-
-    background:#078802;
-
-}
-
-.minus-btn:hover {
-
-    background:#b71c1c;
-
-}
-
-
 
 
 }
 
 
 
-/* ---------- Tablet ---------- */
+// Previous Month
+
+document
+.getElementById("prevMonth")
+.onclick=()=>{
+
+    currentDate.setMonth(
+        currentDate.getMonth()-1
+    );
+
+    renderCalendar();
+
+};
 
 
-@media(min-width:700px){
+
+// Next Month
+
+document
+.getElementById("nextMonth")
+.onclick=()=>{
 
 
-    .summary-grid {
+    currentDate.setMonth(
+        currentDate.getMonth()+1
+    );
 
-        grid-template-columns:repeat(3,1fr);
+
+    renderCalendar();
+
+};
+
+
+
+
+
+// -----------------------------
+// Date Helpers
+// -----------------------------
+
+function formatDate(date){
+
+    let year =
+    date.getFullYear();
+
+
+    let month =
+    String(
+        date.getMonth()+1
+    ).padStart(2,"0");
+
+
+    let day =
+    String(
+        date.getDate()
+    ).padStart(2,"0");
+
+
+    return `${year}-${month}-${day}`;
+
+}
+
+
+function isToday(y,m,d){
+
+
+    let today =
+    new Date();
+
+
+    return (
+
+        y===today.getFullYear()
+
+        &&
+
+        m===today.getMonth()
+
+        &&
+
+        d===today.getDate()
+
+    );
+
+}
+
+
+
+// -----------------------------
+// Add Bottle
+// -----------------------------
+
+
+function addBottle(date){
+
+
+    if(!bottleData[date]){
+
+        bottleData[date]=0;
 
     }
 
 
-    body {
+    bottleData[date]++;
 
-        max-width:700px;
 
-        margin:auto;
+    saveData();
+
+
+    renderCalendar();
+
+
+    calculateTotals();
+
+
+    generateReports();
+
+
+}
+
+// -----------------------------
+// Remove Bottle
+// -----------------------------
+
+function removeBottle(date){
+
+
+    if(!bottleData[date]){
+        return;
+    }
+
+
+    bottleData[date]--;
+
+
+    if(bottleData[date] <= 0){
+
+        delete bottleData[date];
 
     }
+
+
+    saveData();
+
+
+    renderCalendar();
+
+
+    calculateTotals();
+
+
+    generateReports();
+
+
+}
+
+
+// -----------------------------
+// Popup - Remove
+// -----------------------------
+function removeBottleFromModal(){
+
+    removeBottle(selectedDate);
+
+    openDateModal(selectedDate);
+
+}
+
+
+// -----------------------------
+// Save Data
+// -----------------------------
+
+
+function saveData(){
+
+
+    localStorage.setItem(
+        "bottleData",
+        JSON.stringify(bottleData)
+    );
+
+
+}
+
+
+
+// -----------------------------
+// Date Modal
+// -----------------------------
+
+
+function openDateModal(date){
+
+
+    selectedDate=date;
+
+
+    document.getElementById(
+        "selectedDate"
+    ).innerText=date;
+
+
+
+    let count =
+    bottleData[date] || 0;
+
+
+
+    document.getElementById(
+        "selectedCount"
+    ).innerText=count;
+
+
+
+    document.getElementById(
+        "selectedCost"
+    ).innerText =
+    "₹"+
+    (
+        count*bottlePrice
+    );
+
+
+
+    document.getElementById(
+        "dateModal"
+    ).style.display="flex";
+
+
+}
+
+
+
+function closeModal(){
+
+
+    document.getElementById(
+        "dateModal"
+    ).style.display="none";
+
+
+}
+
+
+
+function addBottleFromModal(){
+
+
+    addBottle(
+        selectedDate
+    );
+
+
+    openDateModal(
+        selectedDate
+    );
+
+}
+/* ==========================================
+   script.js Part 2
+   Calculations, Reports, Settings
+   ========================================== */
+
+
+// -----------------------------
+// Automatic Calculations
+// -----------------------------
+function calculateTotals(){
+
+    // Get today's date correctly
+    let today = formatDate(new Date());
+
+
+    // Today's bottle count
+    let todayCount = Number(
+        bottleData[today] || 0
+    );
+
+
+    document.getElementById(
+        "todayBottle"
+    ).innerText = todayCount;
+
+
+    document.getElementById(
+        "todayCost"
+    ).innerText =
+    "₹" + (todayCount * bottlePrice);
+
+
+
+    let now = new Date();
+
+
+    let monthCount = 0;
+
+    let overallCount = 0;
+
+
+
+    Object.keys(bottleData).forEach(date=>{
+
+
+        let count =
+        Number(bottleData[date]);
+
+
+        overallCount += count;
+
+
+
+        let savedDate =
+        new Date(
+            date + "T00:00:00"
+        );
+
+
+        if(
+            savedDate.getMonth() === now.getMonth()
+            &&
+            savedDate.getFullYear() === now.getFullYear()
+        ){
+
+            monthCount += count;
+
+        }
+
+
+    });
+
+
+
+    document.getElementById(
+        "monthBottle"
+    ).innerText =
+    monthCount;
+
+
+
+    document.getElementById(
+        "monthCost"
+    ).innerText =
+    "₹" + (monthCount * bottlePrice);
+
+
+
+    document.getElementById(
+        "overallBottle"
+    ).innerText =
+    overallCount;
+
+
+
+    document.getElementById(
+        "overallCost"
+    ).innerText =
+    "₹" + (overallCount * bottlePrice);
+
+}
+
+
+
+
+// -----------------------------
+// Reports
+// -----------------------------
+
+
+function generateReports(){
+
+
+    generateDailyReport();
+
+    generateMonthlyReport();
+
+
+}
+
+
+
+// -----------------------------
+// Daily Report
+// -----------------------------
+
+
+function generateDailyReport(){
+
+
+    let table =
+    document.getElementById(
+        "dailyReport"
+    );
+
+
+    if(!table)
+    return;
+
+
+    table.innerHTML="";
+
+
+
+    let totalBottle=0;
+
+
+
+    Object.keys(bottleData)
+
+    .sort()
+
+    .forEach(date=>{
+
+
+        let count =
+        bottleData[date];
+
+
+        let cost =
+        count*bottlePrice;
+
+
+
+        totalBottle += count;
+
+
+
+       table.innerHTML += `
+<tr>
+    <td>${date}</td>
+    <td>${count}</td>
+    <td>₹${cost}</td>
+    <td>
+        <button class="edit-btn"
+            onclick="editRecord('${date}')">
+            ✏️
+        </button>
+
+        <button class="delete-btn"
+            onclick="deleteRecord('${date}')">
+            🗑️
+        </button>
+    </td>
+</tr>
+`;
+
+    });
+
+
+
+    document.getElementById(
+        "dailyTotalBottle"
+    ).innerText =
+    totalBottle;
+
+
+
+    document.getElementById(
+        "dailyTotalCost"
+    ).innerText =
+    "₹"+
+    (
+        totalBottle*bottlePrice
+    );
+
+
+}
+
+// -----------------------------
+// Edit
+// -----------------------------
+function editRecord(date){
+
+    document.getElementById("editDate").value = date;
+    document.getElementById("editCount").value = bottleData[date];
+
+    document.getElementById("editModal").style.display="flex";
+}
+
+// -----------------------------
+// Update
+// -----------------------------
+function updateRecord(){
+
+    let oldDate = document.getElementById("editDate").value;
+
+    let count = Number(
+        document.getElementById("editCount").value
+    );
+
+    if(count<=0){
+        alert("Invalid bottle count");
+        return;
+    }
+
+    bottleData[oldDate]=count;
+
+    saveData();
+
+    renderCalendar();
+
+    calculateTotals();
+
+    generateReports();
+
+    closeEditModal();
+}
+
+// -----------------------------
+// Delete
+// -----------------------------
+function deleteRecord(date){
+
+    if(!confirm("Delete this record?"))
+        return;
+
+    delete bottleData[date];
+
+    saveData();
+
+    renderCalendar();
+
+    calculateTotals();
+
+    generateReports();
+}
+
+// -----------------------------
+// Close
+// -----------------------------
+
+function closeEditModal(){
+
+    document.getElementById("editModal").style.display="none";
+
+}
+
+// -----------------------------
+// Monthly Report
+// -----------------------------
+
+
+function generateMonthlyReport(){
+
+
+    let table =
+    document.getElementById(
+        "monthlyReport"
+    );
+
+
+    if(!table)
+    return;
+
+
+
+    table.innerHTML="";
+
+
+    let months={};
+
+
+
+    Object.keys(bottleData)
+
+    .forEach(date=>{
+
+
+        let d =
+        new Date(date);
+
+
+
+        let key =
+        d.toLocaleString(
+            "default",
+            {
+                month:"long",
+                year:"numeric"
+            }
+        );
+
+
+
+        if(!months[key]){
+
+            months[key]=0;
+
+        }
+
+
+
+        months[key]
+        +=
+        bottleData[date];
+
+
+    });
+
+
+
+    let total=0;
+
+
+
+    Object.keys(months)
+
+    .forEach(month=>{
+
+
+        let count =
+        months[month];
+
+
+        total+=count;
+
+
+
+        table.innerHTML += `
+
+
+        <tr>
+
+        <td>
+        ${month}
+        </td>
+
+
+        <td>
+        ${count}
+        </td>
+
+
+        <td>
+        ₹${count*bottlePrice}
+        </td>
+
+
+        </tr>
+
+
+        `;
+
+
+    });
+
+
+
+    document.getElementById(
+        "monthlyTotalBottle"
+    ).innerText =
+    total;
+
+
+
+    document.getElementById(
+        "monthlyTotalCost"
+    ).innerText =
+    "₹"+
+    (
+        total*bottlePrice
+    );
+
+
+}
+
+
+
+
+
+// -----------------------------
+// Bottle Price Setting
+// -----------------------------
+
+
+function savePrice(){
+
+
+    let price =
+    Number(
+        document.getElementById(
+            "bottlePrice"
+        ).value
+    );
+
+
+
+    if(price<=0){
+
+        alert(
+            "Enter valid price"
+        );
+
+        return;
+
+    }
+
+
+
+    bottlePrice=price;
+
+
+
+    localStorage.setItem(
+        "bottlePrice",
+        bottlePrice
+    );
+
+
+
+    calculateTotals();
+
+    generateReports();
+
+    renderCalendar();
+
+
+    alert(
+        "Bottle price updated"
+    );
+
+
+}
+
+
+
+
+
+
+// -----------------------------
+// Clear All Data
+// -----------------------------
+
+
+function clearAllData(){
+
+
+    let confirmDelete =
+    confirm(
+        "Are you sure? All bottle records will be deleted permanently."
+    );
+
+
+
+    if(confirmDelete){
+
+
+        bottleData={};
+
+
+        localStorage.removeItem(
+            "bottleData"
+        );
+
+
+
+        renderCalendar();
+
+        calculateTotals();
+
+        generateReports();
+
+
+        alert(
+            "All data cleared"
+        );
+
+
+    }
+
+
+}
+
+
+
+
+
+
+// -----------------------------
+// Edit Records List
+// -----------------------------
+
+
+function openEditList(){
+
+
+    let dates =
+    Object.keys(
+        bottleData
+    );
+
+
+
+    if(dates.length===0){
+
+        alert(
+            "No records found"
+        );
+
+        return;
+
+    }
+
+
+
+    let date =
+    prompt(
+        "Enter date to edit (YYYY-MM-DD)\n\n"
+        +
+        dates.join("\n")
+    );
+
+
+
+    if(
+        date &&
+        bottleData[date]!==undefined
+    ){
+
+
+        let count =
+        prompt(
+            "Enter new bottle count",
+            bottleData[date]
+        );
+
+
+
+        if(count!==null){
+
+
+            bottleData[date]
+            =
+            Number(count);
+
+
+
+            saveData();
+
+
+            renderCalendar();
+
+            calculateTotals();
+
+            generateReports();
+
+
+        }
+
+
+    }
+
+
+}
+/* ==========================================
+   script.js Part 3
+   Backup, Restore, PDF, Excel Export
+   ========================================== */
+
+
+
+// -----------------------------
+// Backup Data (JSON)
+// -----------------------------
+
+function backupData(){
+
+
+    let backup = {
+
+        bottleData : bottleData,
+
+        bottlePrice : bottlePrice,
+
+        backupDate :
+        new Date().toLocaleString()
+
+    };
+
+
+
+    let json =
+    JSON.stringify(
+        backup,
+        null,
+        2
+    );
+
+
+
+    let blob =
+    new Blob(
+        [json],
+        {
+            type:"application/json"
+        }
+    );
+
+
+
+    let url =
+    URL.createObjectURL(blob);
+
+
+
+    let a =
+    document.createElement("a");
+
+
+
+    a.href=url;
+
+
+    a.download =
+    "water_bottle_backup.json";
+
+
+
+    a.click();
+
+
+
+    URL.revokeObjectURL(url);
+
+
+
+    localStorage.setItem(
+        "lastBackup",
+        new Date().toLocaleString()
+    );
+
+
+
+    updateBackupInfo();
+
+
+    alert(
+        "Backup created successfully"
+    );
+
+}
+
+
+
+
+
+// -----------------------------
+// Restore Data
+// -----------------------------
+
+
+function restoreData(event){
+
+
+    let file =
+    event.target.files[0];
+
+
+    if(!file)
+    return;
+
+
+
+    let reader =
+    new FileReader();
+
+
+
+    reader.onload=function(e){
+
+
+
+        let confirmRestore =
+        confirm(
+        "Restore will replace existing data. Continue?"
+        );
+
+
+
+        if(!confirmRestore)
+        return;
+
+
+
+        try{
+
+
+            let data =
+            JSON.parse(
+                e.target.result
+            );
+
+
+
+            bottleData =
+            data.bottleData || {};
+
+
+
+            bottlePrice =
+            data.bottlePrice || 20;
+
+
+
+            localStorage.setItem(
+                "bottleData",
+                JSON.stringify(bottleData)
+            );
+
+
+
+            localStorage.setItem(
+                "bottlePrice",
+                bottlePrice
+            );
+
+
+
+            document.getElementById(
+                "bottlePrice"
+            ).value =
+            bottlePrice;
+
+
+
+            renderCalendar();
+
+            calculateTotals();
+
+            generateReports();
+
+
+
+            alert(
+                "Restore completed"
+            );
+
+
+        }
+
+        catch(error){
+
+
+            alert(
+                "Invalid backup file"
+            );
+
+
+        }
+
+
+    };
+
+
+
+    reader.readAsText(file);
+
+
+}
+
+
+
+
+
+
+
+// -----------------------------
+// Last Backup Display
+// -----------------------------
+
+
+function updateBackupInfo(){
+
+
+    let last =
+    localStorage.getItem(
+        "lastBackup"
+    );
+
+
+
+    let element =
+    document.getElementById(
+        "lastBackup"
+    );
+
+
+
+    if(element){
+
+
+        element.innerText =
+        last
+        ?
+        "Last Backup: "+last
+        :
+        "Last Backup: Not Available";
+
+
+    }
+
+
+}
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+    updateBackupInfo();
+
+});
+
+
+
+
+
+
+
+// -----------------------------
+// Export Daily PDF
+// -----------------------------
+
+function exportDailyPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    let totalBottle = 0;
+
+    let body = [];
+
+    Object.keys(bottleData)
+        .sort()
+        .forEach(date => {
+
+            let count = bottleData[date];
+
+            totalBottle += count;
+
+            body.push([
+                date,
+                count,
+                "Rs. " + (count * bottlePrice)
+            ]);
+
+        });
+
+
+    const totalAmount = totalBottle * bottlePrice;
+
+
+    // =============================
+    // Top Banner
+    // =============================
+
+    doc.setFillColor(34,139,34);
+
+    doc.roundedRect(
+        10,
+        10,
+        190,
+        22,
+        4,
+        4,
+        "F"
+    );
+
+
+    doc.setTextColor(255,255,255);
+
+    doc.setFont("helvetica","bold");
+
+    doc.setFontSize(20);
+
+    doc.text(
+        "CHETTA WATER BOTTLE MANAGER",
+        105,
+        19,
+        {
+            align:"center"
+        }
+    );
+
+
+    doc.setFontSize(11);
+
+    doc.text(
+        "Daily Consumption Report",
+        105,
+        27,
+        {
+            align:"center"
+        }
+    );
+
+
+    // =============================
+    // Information
+    // =============================
+
+    doc.setTextColor(80);
+
+    doc.setFontSize(10);
+
+
+    doc.text(
+        "Generated : " + new Date().toLocaleString(),
+        12,
+        40
+    );
+
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        198,
+        40,
+        {
+            align:"right"
+        }
+    );
+
+
+    // =============================
+    // Table
+    // =============================
+
+    doc.autoTable({
+
+        startY:48,
+
+        head:[
+            [
+                "Date",
+                "Bottle Count",
+                "Amount"
+            ]
+        ],
+
+        body:body,
+
+
+        theme:"grid",
+
+
+        headStyles:{
+
+            fillColor:[
+                34,
+                139,
+                34
+            ],
+
+            textColor:255,
+
+            halign:"center",
+
+            fontStyle:"bold"
+
+        },
+
+
+        bodyStyles:{
+
+            halign:"center"
+
+        },
+
+
+        alternateRowStyles:{
+
+            fillColor:[
+                245,
+                245,
+                245
+            ]
+
+        }
+
+
+    });
+
+
+
+    // =============================
+    // Summary Card
+    // =============================
+
+
+    let y = doc.lastAutoTable.finalY + 15;
+
+
+    doc.setFillColor(
+        240,
+        248,
+        240
+    );
+
+
+    doc.roundedRect(
+        10,
+        y,
+        190,
+        25,
+        4,
+        4,
+        "F"
+    );
+
+
+    doc.setTextColor(40);
+
+    doc.setFontSize(12);
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    doc.text(
+        "Total Bottles : " + totalBottle,
+        20,
+        y+10
+    );
+
+
+    doc.text(
+        "Grand Total : Rs. " + totalAmount,
+        190,
+        y+10,
+        {
+            align:"right"
+        }
+    );
+
+
+    doc.setFontSize(10);
+
+    doc.text(
+        "Total Records : " + body.length,
+        20,
+        y+19
+    );
+
+
+
+    // =============================
+    // Footer
+    // =============================
+
+
+    const pages =
+        doc.internal.getNumberOfPages();
+
+
+    for(let i=1;i<=pages;i++){
+
+        doc.setPage(i);
+
+
+        doc.setDrawColor(180);
+
+
+        doc.line(
+            12,
+            pageHeight-15,
+            198,
+            pageHeight-15
+        );
+
+
+        doc.setFontSize(9);
+
+        doc.setFont(
+            "helvetica",
+            "normal"
+        );
+
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            12,
+            pageHeight-8
+        );
+
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            198,
+            pageHeight-8,
+            {
+                align:"right"
+            }
+        );
+
+    }
+
+
+
+    doc.save(
+        "Daily_Report.pdf"
+    );
+
+}
+
+
+
+
+
+// -----------------------------
+// Export Monthly PDF
+// -----------------------------
+function exportMonthlyPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+
+    let months = {};
+    let totalBottle = 0;
+
+
+    Object.keys(bottleData)
+    .forEach(date => {
+
+        let d = new Date(date);
+
+        let month = d.toLocaleString("default", {
+            month:"long",
+            year:"numeric"
+        });
+
+
+        if(!months[month]){
+            months[month] = 0;
+        }
+
+
+        months[month] += bottleData[date];
+
+    });
+
+
+
+    let body = [];
+
+
+    Object.keys(months)
+    .forEach(month => {
+
+        let count = months[month];
+
+        totalBottle += count;
+
+
+        body.push([
+            month,
+            count,
+            "Rs. " + (count * bottlePrice)
+        ]);
+
+    });
+
+
+
+    const totalAmount =
+        totalBottle * bottlePrice;
+
+
+
+    // =============================
+    // Top Banner
+    // =============================
+
+    doc.setFillColor(
+        34,
+        139,
+        34
+    );
+
+
+    doc.roundedRect(
+        10,
+        10,
+        190,
+        22,
+        4,
+        4,
+        "F"
+    );
+
+
+
+    doc.setTextColor(
+        255,
+        255,
+        255
+    );
+
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    doc.setFontSize(20);
+
+
+    doc.text(
+        "WATER BOTTLE MANAGER",
+        105,
+        19,
+        {
+            align:"center"
+        }
+    );
+
+
+
+    doc.setFontSize(11);
+
+
+    doc.text(
+        "Monthly Consumption Report",
+        105,
+        27,
+        {
+            align:"center"
+        }
+    );
+
+
+
+    // =============================
+    // Information
+    // =============================
+
+
+    doc.setTextColor(80);
+
+
+    doc.setFontSize(10);
+
+
+
+    doc.text(
+        "Generated : " +
+        new Date().toLocaleString(),
+        12,
+        40
+    );
+
+
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        198,
+        40,
+        {
+            align:"right"
+        }
+    );
+
+
+
+    // =============================
+    // Table
+    // =============================
+
+
+    doc.autoTable({
+
+        startY:48,
+
+
+        head:[
+            [
+                "Month",
+                "Bottle Count",
+                "Amount"
+            ]
+        ],
+
+
+        body:body,
+
+
+        theme:"grid",
+
+
+
+        headStyles:{
+
+            fillColor:[
+                34,
+                139,
+                34
+            ],
+
+            textColor:255,
+
+            halign:"center",
+
+            fontStyle:"bold"
+
+        },
+
+
+        bodyStyles:{
+
+            halign:"center"
+
+        },
+
+
+        alternateRowStyles:{
+
+            fillColor:[
+                245,
+                245,
+                245
+            ]
+
+        }
+
+    });
+
+
+
+    // =============================
+    // Summary Card
+    // =============================
+
+
+    let y =
+    doc.lastAutoTable.finalY + 15;
+
+
+
+    doc.setFillColor(
+        240,
+        248,
+        240
+    );
+
+
+
+    doc.roundedRect(
+        10,
+        y,
+        190,
+        25,
+        4,
+        4,
+        "F"
+    );
+
+
+
+    doc.setTextColor(40);
+
+
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    doc.setFontSize(12);
+
+
+
+    doc.text(
+        "Total Bottles : " + totalBottle,
+        20,
+        y + 10
+    );
+
+
+
+    doc.text(
+        "Grand Total : Rs. " + totalAmount,
+        190,
+        y + 10,
+        {
+            align:"right"
+        }
+    );
+
+
+
+    doc.setFontSize(10);
+
+
+    doc.text(
+        "Total Months : " + body.length,
+        20,
+        y + 19
+    );
+
+
+
+    // =============================
+    // Footer
+    // =============================
+
+
+    const pages =
+        doc.internal.getNumberOfPages();
+
+
+
+    for(let i=1;i<=pages;i++){
+
+
+        doc.setPage(i);
+
+
+
+        doc.setDrawColor(180);
+
+
+
+        doc.line(
+            12,
+            pageHeight-15,
+            198,
+            pageHeight-15
+        );
+
+
+
+        doc.setFontSize(9);
+
+
+        doc.setFont(
+            "helvetica",
+            "normal"
+        );
+
+
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            12,
+            pageHeight-8
+        );
+
+
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            198,
+            pageHeight-8,
+            {
+                align:"right"
+            }
+        );
+
+
+    }
+
+
+
+    doc.save(
+        "Monthly_Report.pdf"
+    );
+
+}
+
+// -----------------------------
+// Export Daily Excel
+// -----------------------------
+
+function exportMonthlyPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // ==========================
+    // Prepare Data
+    // ==========================
+
+    let months = {};
+
+    Object.keys(bottleData).forEach(date => {
+
+        let d = new Date(date);
+
+        let month = d.toLocaleString("default", {
+            month: "long",
+            year: "numeric"
+        });
+
+        if (!months[month]) {
+            months[month] = 0;
+        }
+
+        months[month] += bottleData[date];
+
+    });
+
+    let totalBottle = 0;
+
+    let body = [];
+
+    Object.keys(months).forEach(month => {
+
+        let count = months[month];
+
+        totalBottle += count;
+
+        body.push([
+            month,
+            count,
+            "Rs. " + (count * bottlePrice)
+        ]);
+
+    });
+
+    // ==========================
+    // Header
+    // ==========================
+
+    doc.setFillColor(46, 125, 50);
+    doc.rect(0, 0, pageWidth, 28, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
+
+    doc.text(
+        "WATER BOTTLE MANAGER",
+        pageWidth / 2,
+        12,
+        { align: "center" }
+    );
+
+    doc.setFontSize(11);
+
+    doc.text(
+        "Monthly Water Bottle Report",
+        pageWidth / 2,
+        20,
+        { align: "center" }
+    );
+
+    // ==========================
+    // Information
+    // ==========================
+
+    doc.setTextColor(0);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    doc.text(
+        "Export Date : " + new Date().toLocaleString(),
+        14,
+        38
+    );
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        pageWidth - 14,
+        38,
+        { align: "right" }
+    );
+
+    // ==========================
+    // Table
+    // ==========================
+
+    doc.autoTable({
+
+        startY: 45,
+
+        head: [[
+            "Month",
+            "Bottle Count",
+            "Amount"
+        ]],
+
+        body: body,
+
+        theme: "grid",
+
+        headStyles: {
+
+            fillColor: [46, 125, 50],
+
+            textColor: 255,
+
+            halign: "center",
+
+            fontStyle: "bold",
+
+            fontSize: 11
+
+        },
+
+        bodyStyles: {
+
+            halign: "center",
+
+            fontSize: 10
+
+        },
+
+        alternateRowStyles: {
+
+            fillColor: [245, 245, 245]
+
+        },
+
+        columnStyles: {
+
+            0: {
+                halign: "left"
+            },
+
+            1: {
+                halign: "center"
+            },
+
+            2: {
+                halign: "right"
+            }
+
+        }
+
+    });
+
+    // ==========================
+    // Summary Box
+    // ==========================
+
+    let finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.setFillColor(240, 248, 240);
+
+    doc.roundedRect(
+        14,
+        finalY,
+        pageWidth - 28,
+        22,
+        3,
+        3,
+        "F"
+    );
+
+    doc.setFont("helvetica", "bold");
+
+    doc.setFontSize(11);
+
+    doc.text(
+        "Overall Bottles : " + totalBottle,
+        18,
+        finalY + 8
+    );
+
+    doc.text(
+        "Overall Cost : Rs. " + (totalBottle * bottlePrice),
+        pageWidth - 18,
+        finalY + 8,
+        {
+            align: "right"
+        }
+    );
+
+    // ==========================
+    // Footer
+    // ==========================
+
+    const pages = doc.internal.getNumberOfPages();
+
+    for (let i = 1; i <= pages; i++) {
+
+        doc.setPage(i);
+
+        doc.setDrawColor(180);
+
+        doc.line(
+            14,
+            pageHeight - 15,
+            pageWidth - 14,
+            pageHeight - 15
+        );
+
+        doc.setFont("helvetica", "normal");
+
+        doc.setFontSize(9);
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            14,
+            pageHeight - 8
+        );
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            pageWidth - 14,
+            pageHeight - 8,
+            {
+                align: "right"
+            }
+        );
+
+    }
+
+    doc.save("Monthly_Report.pdf");
+
+}
+
+// -----------------------------
+// Export Monthly Excel
+// -----------------------------
+
+
+function exportMonthlyExcel(){
+
+
+    let rows=[
+
+        [
+        "Month",
+        "Bottle Count",
+        "Cost"
+        ]
+
+    ];
+
+
+
+    let months={};
+
+
+
+    Object.keys(bottleData)
+
+    .forEach(date=>{
+
+
+        let d =
+        new Date(date);
+
+
+
+        let month =
+        d.toLocaleString(
+        "default",
+        {
+        month:"long",
+        year:"numeric"
+        });
+
+
+
+        if(!months[month])
+        months[month]=0;
+
+
+
+        months[month]
+        +=
+        bottleData[date];
+
+
+    });
+
+
+
+    Object.keys(months)
+
+    .forEach(month=>{
+
+
+        let count =
+        months[month];
+
+
+
+        rows.push([
+
+            month,
+
+            count,
+
+            count*bottlePrice
+
+        ]);
+
+
+    });
+
+
+
+    rows.push([]);
+
+    rows.push([
+
+        "Export Date",
+
+        new Date().toLocaleString()
+
+    ]);
+
+
+
+    let sheet =
+    XLSX.utils.aoa_to_sheet(rows);
+
+
+
+    let book =
+    XLSX.utils.book_new();
+
+
+
+    XLSX.utils.book_append_sheet(
+
+        book,
+
+        sheet,
+
+        "Monthly Report"
+
+    );
+
+
+
+    XLSX.writeFile(
+
+        book,
+
+        "monthly_report.xlsx"
+
+    );
+
 
 }
