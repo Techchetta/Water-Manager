@@ -220,7 +220,7 @@ function renderCalendar(){
 
 
         <div class="count">
-        ${count} Bottle
+        ${count} 
         </div>
 
 
