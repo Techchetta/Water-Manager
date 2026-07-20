@@ -204,6 +204,7 @@ body {
 
 
 
+
 /* No bottle */
 
 .day.gray {
@@ -787,7 +788,7 @@ button {
 /* ---------- Mobile Optimization ---------- */
 
 
-@media(max-width:480px){
+@media(max-width:650px){
 
 
     .card h1 {
@@ -859,7 +860,7 @@ button {
     /* No bottle */
 
 .day.gray {
-    width: 45px;
+    width: 100%;
 height: 100%;
     background:#e5e5e5;
 
@@ -870,7 +871,7 @@ height: 100%;
 /* Has bottle */
 
 .day.green {
-        width: 45px;
+        width: 100%;
 height: 100%;
 
     background:#c8e6c9;
@@ -900,7 +901,7 @@ height: 100%;
 
     border-radius:50%;
 
-    border:none;
+    border:2px;
 
     background:#2e7d32;
 
@@ -921,7 +922,7 @@ height: 100%;
     width:15px;
     height:15px;
 
-    border:none;
+    border:2px;
 
     border-radius:50%;
 
