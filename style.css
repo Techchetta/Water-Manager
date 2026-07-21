@@ -424,6 +424,7 @@ body {
     border-radius:50%;
     line-height:18px;
     padding:0;
+   visible:false;
 }
 
 .add-btn{
