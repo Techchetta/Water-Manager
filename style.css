@@ -424,17 +424,19 @@ body {
     border-radius:50%;
     line-height:18px;
     padding:0;
-   visible:false;
+
 }
 
 .add-btn{
     right:2px;
     bottom:2px;
+   display: none;
 }
 
 .minus-btn{
     left:2px;
     bottom:2px;
+   display: none;
 }
 
 .edit-btn,
