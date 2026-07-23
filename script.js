@@ -372,7 +372,8 @@ function addBottle(date){
     saveData();
 
 
-    renderCalendar();
+    renderCalendar();todayBottle
+    
 
 
     calculateTotals();
@@ -545,13 +546,13 @@ function calculateTotals(){
 
     document.getElementById(
         "todayBottle"
-    ).innerText = todayCount;
+    ).innerText = "🛢️" + todayCount;
 
 
     document.getElementById(
         "todayCost"
     ).innerText =
-    "₹" + (todayCount * bottlePrice);
+    "💵"+" "+ "₹" + (todayCount * bottlePrice);
 
 
 
@@ -599,28 +600,28 @@ function calculateTotals(){
     document.getElementById(
         "monthBottle"
     ).innerText =
-    monthCount;
+    "🛢️" +monthCount;
 
 
 
     document.getElementById(
         "monthCost"
     ).innerText =
-    "₹" + (monthCount * bottlePrice);
+     "💵"+" "+ "₹" + (monthCount * bottlePrice);
 
 
 
     document.getElementById(
         "overallBottle"
     ).innerText =
-    overallCount;
+   "🛢️" + overallCount;
 
 
 
     document.getElementById(
         "overallCost"
     ).innerText =
-    "₹" + (overallCount * bottlePrice);
+    "💵"+" "+  "₹" + (overallCount * bottlePrice);
 
 }
 
@@ -899,7 +900,11 @@ function generateMonthlyReport(){
         <td>
         ₹${count*bottlePrice}
         </td>
-
+        
+        
+        <td>
+        -
+        </td>
 
         </tr>
 
@@ -1387,132 +1392,292 @@ document.addEventListener(
 // Export Daily PDF
 // -----------------------------
 
+function exportDailyPDF() {
 
-function exportDailyPDF(){
+    const { jsPDF } = window.jspdf;
 
+    const doc = new jsPDF("p", "mm", "a4");
 
-    const {
-        jsPDF
-    } =
-    window.jspdf;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
+    let totalBottle = 0;
 
-
-    let pdf =
-    new jsPDF();
-
-
-
-    pdf.text(
-        "Daily Water Bottle Report",
-        10,
-        15
-    );
-
-
-    let y=30;
-
-
-
-    pdf.text(
-        "Date        Bottles       Cost",
-        10,
-        y
-    );
-
-
-    y+=10;
-
-
-
-    let total=0;
-
-
+    let body = [];
 
     Object.keys(bottleData)
+        .sort()
+        .forEach(date => {
 
-    .sort()
+            let count = bottleData[date];
 
-    .forEach(date=>{
+            totalBottle += count;
+
+            body.push([
+                date,
+                count,
+                "Rs. " + (count * bottlePrice)
+            ]);
+
+        });
 
 
-        let count =
-        bottleData[date];
+    const totalAmount = totalBottle * bottlePrice;
 
 
-        total += count;
+    // =============================
+    // Top Banner
+    // =============================
 
+    doc.setFillColor(34,139,34);
 
-
-        pdf.text(
-
-        `${date}     ${count}          Rs.${count*bottlePrice}`,
-
+    doc.roundedRect(
         10,
+        10,
+        190,
+        22,
+        4,
+        4,
+        "F"
+    );
 
-        y
 
-        );
+    doc.setTextColor(255,255,255);
+
+    doc.setFont("helvetica","bold");
+
+    doc.setFontSize(20);
+
+    doc.text(
+        "CHETTA WATER BOTTLE MANAGER",
+        105,
+        19,
+        {
+            align:"center"
+        }
+    );
 
 
-        y+=8;
+    doc.setFontSize(11);
+
+    doc.text(
+        "Daily Consumption Report",
+        105,
+        27,
+        {
+            align:"center"
+        }
+    );
+
+
+    // =============================
+    // Information
+    // =============================
+
+    doc.setTextColor(80);
+
+    doc.setFontSize(10);
+
+
+    doc.text(
+        "Generated : " + new Date().toLocaleString(),
+        12,
+        40
+    );
+
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        198,
+        40,
+        {
+            align:"right"
+        }
+    );
+
+
+    // =============================
+    // Table
+    // =============================
+
+    doc.autoTable({
+
+        startY:48,
+
+        head:[
+            [
+                "Date",
+                "Bottle Count",
+                "Amount"
+            ]
+        ],
+
+        body:body,
+
+
+        theme:"grid",
+
+
+        headStyles:{
+
+            fillColor:[
+                34,
+                139,
+                34
+            ],
+
+            textColor:255,
+
+            halign:"center",
+
+            fontStyle:"bold"
+
+        },
+
+
+        bodyStyles:{
+
+            halign:"center"
+
+        },
+
+
+        alternateRowStyles:{
+
+            fillColor:[
+                245,
+                245,
+                245
+            ]
+
+        }
 
 
     });
 
 
 
-    y+=10;
+    // =============================
+    // Summary Card
+    // =============================
 
 
-    pdf.text(
+    let y = doc.lastAutoTable.finalY + 15;
 
-    `Grand Total Bottles: ${total}`,
 
-    10,
-
-    y
-
+    doc.setFillColor(
+        240,
+        248,
+        240
     );
 
 
-    y+=8;
-
-
-    pdf.text(
-
-    `Grand Total Cost: Rs.${total*bottlePrice}`,
-
-    10,
-
-    y
-
+    doc.roundedRect(
+        10,
+        y,
+        190,
+        25,
+        4,
+        4,
+        "F"
     );
 
 
-    y+=8;
+    doc.setTextColor(40);
+
+    doc.setFontSize(12);
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
 
 
-    pdf.text(
+    doc.text(
+        "Total Bottles : " + totalBottle,
+        20,
+        y+10
+    );
 
-    "Export Date: "+
-    new Date().toLocaleString(),
 
-    10,
+    doc.text(
+        "Grand Total : Rs. " + totalAmount,
+        190,
+        y+10,
+        {
+            align:"right"
+        }
+    );
 
-    y
 
+    doc.setFontSize(10);
+
+    doc.text(
+        "Total Records : " + body.length,
+        20,
+        y+19
     );
 
 
 
-    pdf.save(
-        "daily_report.pdf"
-    );
+    // =============================
+    // Footer
+    // =============================
 
+
+    const pages =
+        doc.internal.getNumberOfPages();
+
+
+    for(let i=1;i<=pages;i++){
+
+        doc.setPage(i);
+
+
+        doc.setDrawColor(180);
+
+
+        doc.line(
+            12,
+            pageHeight-15,
+            198,
+            pageHeight-15
+        );
+
+
+        doc.setFontSize(9);
+
+        doc.setFont(
+            "helvetica",
+            "normal"
+        );
+
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            12,
+            pageHeight-8
+        );
+
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            198,
+            pageHeight-8,
+            {
+                align:"right"
+            }
+        );
+
+    }
+
+
+
+    doc.save(
+        "Daily_Report.pdf"
+    );
 
 }
-
 
 
 
@@ -1521,269 +1686,617 @@ function exportDailyPDF(){
 // -----------------------------
 // Export Monthly PDF
 // -----------------------------
+function exportMonthlyPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
 
-function exportMonthlyPDF(){
-
-
-    const {
-        jsPDF
-    } =
-    window.jspdf;
-
-
-
-    let pdf =
-    new jsPDF();
-
-
-
-    pdf.text(
-        "Monthly Water Bottle Report",
-        10,
-        15
-    );
-
-
-    let y=30;
-
-
-    let months={};
-
+    let months = {};
+    let totalBottle = 0;
 
 
     Object.keys(bottleData)
+    .forEach(date => {
 
-    .forEach(date=>{
+        let d = new Date(date);
 
-
-        let d =
-        new Date(date);
-
-
-        let month =
-        d.toLocaleString(
-        "default",
-        {
-        month:"long",
-        year:"numeric"
+        let month = d.toLocaleString("default", {
+            month:"long",
+            year:"numeric"
         });
 
 
+        if(!months[month]){
+            months[month] = 0;
+        }
 
-        if(!months[month])
-        months[month]=0;
 
-
-
-        months[month]
-        +=
-        bottleData[date];
-
+        months[month] += bottleData[date];
 
     });
 
 
 
-    pdf.text(
-    "Month     Bottles     Cost",
-    10,
-    y
-    );
-
-
-    y+=10;
-
-
-
-    let total=0;
-
+    let body = [];
 
 
     Object.keys(months)
+    .forEach(month => {
 
-    .forEach(month=>{
+        let count = months[month];
 
-
-        let count =
-        months[month];
-
-
-        total+=count;
+        totalBottle += count;
 
 
-
-        pdf.text(
-
-        `${month}   ${count}   Rs.${count*bottlePrice}`,
-
-        10,
-
-        y
-
-        );
-
-
-        y+=8;
-
+        body.push([
+            month,
+            count,
+            "Rs. " + (count * bottlePrice)
+        ]);
 
     });
 
 
 
-    y+=10;
+    const totalAmount =
+        totalBottle * bottlePrice;
 
 
 
-    pdf.text(
+    // =============================
+    // Top Banner
+    // =============================
 
-    `Overall Bottles: ${total}`,
-
-    10,
-
-    y
-
+    doc.setFillColor(
+        34,
+        139,
+        34
     );
 
 
-    y+=8;
-
-
-    pdf.text(
-
-    `Overall Cost: Rs.${total*bottlePrice}`,
-
-    10,
-
-    y
-
-    );
-
-
-    y+=8;
-
-
-    pdf.text(
-
-    "Export Date: "+
-    new Date().toLocaleString(),
-
-    10,
-
-    y
-
+    doc.roundedRect(
+        10,
+        10,
+        190,
+        22,
+        4,
+        4,
+        "F"
     );
 
 
 
-    pdf.save(
-        "monthly_report.pdf"
+    doc.setTextColor(
+        255,
+        255,
+        255
     );
 
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    doc.setFontSize(20);
+
+
+    doc.text(
+        "WATER BOTTLE MANAGER",
+        105,
+        19,
+        {
+            align:"center"
+        }
+    );
+
+
+
+    doc.setFontSize(11);
+
+
+    doc.text(
+        "Monthly Consumption Report",
+        105,
+        27,
+        {
+            align:"center"
+        }
+    );
+
+
+
+    // =============================
+    // Information
+    // =============================
+
+
+    doc.setTextColor(80);
+
+
+    doc.setFontSize(10);
+
+
+
+    doc.text(
+        "Generated : " +
+        new Date().toLocaleString(),
+        12,
+        40
+    );
+
+
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        198,
+        40,
+        {
+            align:"right"
+        }
+    );
+
+
+
+    // =============================
+    // Table
+    // =============================
+
+
+    doc.autoTable({
+
+        startY:48,
+
+
+        head:[
+            [
+                "Month",
+                "Bottle Count",
+                "Amount"
+            ]
+        ],
+
+
+        body:body,
+
+
+        theme:"grid",
+
+
+
+        headStyles:{
+
+            fillColor:[
+                34,
+                139,
+                34
+            ],
+
+            textColor:255,
+
+            halign:"center",
+
+            fontStyle:"bold"
+
+        },
+
+
+        bodyStyles:{
+
+            halign:"center"
+
+        },
+
+
+        alternateRowStyles:{
+
+            fillColor:[
+                245,
+                245,
+                245
+            ]
+
+        }
+
+    });
+
+
+
+    // =============================
+    // Summary Card
+    // =============================
+
+
+    let y =
+    doc.lastAutoTable.finalY + 15;
+
+
+
+    doc.setFillColor(
+        240,
+        248,
+        240
+    );
+
+
+
+    doc.roundedRect(
+        10,
+        y,
+        190,
+        25,
+        4,
+        4,
+        "F"
+    );
+
+
+
+    doc.setTextColor(40);
+
+
+
+    doc.setFont(
+        "helvetica",
+        "bold"
+    );
+
+
+    doc.setFontSize(12);
+
+
+
+    doc.text(
+        "Total Bottles : " + totalBottle,
+        20,
+        y + 10
+    );
+
+
+
+    doc.text(
+        "Grand Total : Rs. " + totalAmount,
+        190,
+        y + 10,
+        {
+            align:"right"
+        }
+    );
+
+
+
+    doc.setFontSize(10);
+
+
+    doc.text(
+        "Total Months : " + body.length,
+        20,
+        y + 19
+    );
+
+
+
+    // =============================
+    // Footer
+    // =============================
+
+
+    const pages =
+        doc.internal.getNumberOfPages();
+
+
+
+    for(let i=1;i<=pages;i++){
+
+
+        doc.setPage(i);
+
+
+
+        doc.setDrawColor(180);
+
+
+
+        doc.line(
+            12,
+            pageHeight-15,
+            198,
+            pageHeight-15
+        );
+
+
+
+        doc.setFontSize(9);
+
+
+        doc.setFont(
+            "helvetica",
+            "normal"
+        );
+
+
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            12,
+            pageHeight-8
+        );
+
+
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            198,
+            pageHeight-8,
+            {
+                align:"right"
+            }
+        );
+
+
+    }
+
+
+
+    doc.save(
+        "Monthly_Report.pdf"
+    );
 
 }
-
-
-
-
-
-
 
 // -----------------------------
 // Export Daily Excel
 // -----------------------------
 
+function exportMonthlyPDF() {
 
-function exportDailyExcel(){
+    const { jsPDF } = window.jspdf;
 
+    const doc = new jsPDF("p", "mm", "a4");
 
-    let rows=[
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-        [
-        "Date",
-        "Bottle Count",
-        "Cost"
-        ]
+    // ==========================
+    // Prepare Data
+    // ==========================
 
-    ];
+    let months = {};
 
+    Object.keys(bottleData).forEach(date => {
 
+        let d = new Date(date);
 
-    Object.keys(bottleData)
+        let month = d.toLocaleString("default", {
+            month: "long",
+            year: "numeric"
+        });
 
-    .sort()
+        if (!months[month]) {
+            months[month] = 0;
+        }
 
-    .forEach(date=>{
-
-
-        let count =
-        bottleData[date];
-
-
-        rows.push([
-
-            date,
-
-            count,
-
-            count*bottlePrice
-
-        ]);
-
+        months[month] += bottleData[date];
 
     });
 
+    let totalBottle = 0;
 
+    let body = [];
 
-    rows.push([]);
+    Object.keys(months).forEach(month => {
 
-    rows.push([
+        let count = months[month];
 
-        "Export Date",
+        totalBottle += count;
 
-        new Date().toLocaleString()
+        body.push([
+            month,
+            count,
+            "Rs. " + (count * bottlePrice)
+        ]);
 
-    ]);
+    });
 
+    // ==========================
+    // Header
+    // ==========================
 
+    doc.setFillColor(46, 125, 50);
+    doc.rect(0, 0, pageWidth, 28, "F");
 
-    let sheet =
-    XLSX.utils.aoa_to_sheet(rows);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
 
-
-
-    let book =
-    XLSX.utils.book_new();
-
-
-
-    XLSX.utils.book_append_sheet(
-
-        book,
-
-        sheet,
-
-        "Daily Report"
-
+    doc.text(
+        "WATER BOTTLE MANAGER",
+        pageWidth / 2,
+        12,
+        { align: "center" }
     );
 
+    doc.setFontSize(11);
 
-
-    XLSX.writeFile(
-
-        book,
-
-        "daily_report.xlsx"
-
+    doc.text(
+        "Monthly Water Bottle Report",
+        pageWidth / 2,
+        20,
+        { align: "center" }
     );
 
+    // ==========================
+    // Information
+    // ==========================
+
+    doc.setTextColor(0);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    doc.text(
+        "Export Date : " + new Date().toLocaleString(),
+        14,
+        38
+    );
+
+    doc.text(
+        "Bottle Price : Rs. " + bottlePrice,
+        pageWidth - 14,
+        38,
+        { align: "right" }
+    );
+
+    // ==========================
+    // Table
+    // ==========================
+
+    doc.autoTable({
+
+        startY: 45,
+
+        head: [[
+            "Month",
+            "Bottle Count",
+            "Amount"
+        ]],
+
+        body: body,
+
+        theme: "grid",
+
+        headStyles: {
+
+            fillColor: [46, 125, 50],
+
+            textColor: 255,
+
+            halign: "center",
+
+            fontStyle: "bold",
+
+            fontSize: 11
+
+        },
+
+        bodyStyles: {
+
+            halign: "center",
+
+            fontSize: 10
+
+        },
+
+        alternateRowStyles: {
+
+            fillColor: [245, 245, 245]
+
+        },
+
+        columnStyles: {
+
+            0: {
+                halign: "left"
+            },
+
+            1: {
+                halign: "center"
+            },
+
+            2: {
+                halign: "right"
+            }
+
+        }
+
+    });
+
+    // ==========================
+    // Summary Box
+    // ==========================
+
+    let finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.setFillColor(240, 248, 240);
+
+    doc.roundedRect(
+        14,
+        finalY,
+        pageWidth - 28,
+        22,
+        3,
+        3,
+        "F"
+    );
+
+    doc.setFont("helvetica", "bold");
+
+    doc.setFontSize(11);
+
+    doc.text(
+        "Overall Bottles : " + totalBottle,
+        18,
+        finalY + 8
+    );
+
+    doc.text(
+        "Overall Cost : Rs. " + (totalBottle * bottlePrice),
+        pageWidth - 18,
+        finalY + 8,
+        {
+            align: "right"
+        }
+    );
+
+    // ==========================
+    // Footer
+    // ==========================
+
+    const pages = doc.internal.getNumberOfPages();
+
+    for (let i = 1; i <= pages; i++) {
+
+        doc.setPage(i);
+
+        doc.setDrawColor(180);
+
+        doc.line(
+            14,
+            pageHeight - 15,
+            pageWidth - 14,
+            pageHeight - 15
+        );
+
+        doc.setFont("helvetica", "normal");
+
+        doc.setFontSize(9);
+
+        doc.text(
+            "Generated by Water Bottle Manager",
+            14,
+            pageHeight - 8
+        );
+
+        doc.text(
+            "Page " + i + " of " + pages,
+            pageWidth - 14,
+            pageHeight - 8,
+            {
+                align: "right"
+            }
+        );
+
+    }
+
+    doc.save("Monthly_Report.pdf");
 
 }
-
-
-
-
-
 
 // -----------------------------
 // Export Monthly Excel
